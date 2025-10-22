@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { syncDatabase, Invoice } = require("./models"); // Добавь эту строку
 
 // Создаем экземпляр приложения
 const app = express();
@@ -14,7 +15,18 @@ app.use(express.json());
 // Middleware для парсинга URL-encoded данных
 app.use(express.urlencoded({ extended: true }));
 
-// GET - Получить все счета (с правильными названиями полей)
+// Инициализация базы данных при запуске
+syncDatabase(); // Добавь эту строку
+
+// Базовый маршрут для проверки
+app.get("/", (req, res) => {
+  res.json({
+    message: "Сервер работает с PostgreSQL!",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// GET - Получить все счета
 app.get("/api/invoices", async (req, res) => {
   try {
     const invoices = await Invoice.findAll({
@@ -156,7 +168,7 @@ app.put("/api/invoices/:id", async (req, res) => {
   }
 });
 
-// DELETE - Удалить счет (остается без изменений)
+// DELETE - Удалить счет
 app.delete("/api/invoices/:id", async (req, res) => {
   try {
     const invoice = await Invoice.findByPk(req.params.id);
@@ -168,6 +180,41 @@ app.delete("/api/invoices/:id", async (req, res) => {
     res.json({ message: "Счет удален" });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при удалении счета" });
+  }
+});
+
+// POST - Создать тестовые данные
+app.post("/api/invoices/test-data", async (req, res) => {
+  try {
+    const testInvoices = [
+      {
+        invoiceDate: new Date("2024-01-15"),
+        organization: 'ООО "Ромашка"',
+        invoiceNumber: "INV-001",
+        amount: "15 000 ₽",
+        paymentDate: new Date("2024-01-20"),
+        responsible: "Иванов И.И.",
+        note: "Оплата за услуги",
+      },
+      {
+        invoiceDate: new Date("2024-01-18"),
+        organization: 'АО "Луч"',
+        invoiceNumber: "INV-002",
+        amount: "25 500 ₽",
+        paymentDate: new Date("2024-01-25"),
+        responsible: "Петров П.П.",
+        note: "За поставку оборудования",
+      },
+    ];
+
+    const createdInvoices = await Invoice.bulkCreate(testInvoices);
+    res.json({
+      message: "Тестовые данные созданы",
+      count: createdInvoices.length,
+    });
+  } catch (error) {
+    console.error("Ошибка создания тестовых данных:", error);
+    res.status(500).json({ error: "Ошибка при создании тестовых данных" });
   }
 });
 
@@ -202,5 +249,5 @@ app.use((err, req, res, next) => {
 // Запуск сервера
 app.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`);
-  console.log(`📍 Достпуен по адресу: http://localhost:${PORT}`);
+  console.log(`📍 Доступен по адресу: http://localhost:${PORT}`);
 });

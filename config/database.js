@@ -4,7 +4,7 @@ const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize(
   process.env.DB_NAME || "snabcomp", // имя БД
   process.env.DB_USER || "postgres", // пользователь
-  process.env.DB_PASSWORD || "password", // пароль
+  process.env.DB_PASSWORD || "120698da", // пароль
   {
     host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 5432,
