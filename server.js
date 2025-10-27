@@ -98,11 +98,18 @@ app.post("/api/invoices", async (req, res) => {
       });
     }
 
+    // Дополнительная валидация данных
+    if (isNaN(amount) || Number(amount) <= 0) {
+      return res.status(400).json({
+        error: "Сумма должна быть положительным числом",
+      });
+    }
+
     const invoice = await Invoice.create({
       invoiceDate: parseDateFromFrontend(invoiceDate),
       organization,
       invoiceNumber,
-      amount,
+      amount: Number(amount),
       paymentDate: paymentDate ? parseDateFromFrontend(paymentDate) : null,
       responsible,
       note,
@@ -119,12 +126,15 @@ app.post("/api/invoices", async (req, res) => {
       note: invoice.note,
     });
   } catch (error) {
-    if (error.name === "SequelizeUniqueConstraintError") {
-      return res
-        .status(400)
-        .json({ error: "Счет с таким номером уже существует" });
+    console.error("Ошибка создания счета:", error);
+
+    if (error.name === "SequelizeValidationError") {
+      return res.status(400).json({
+        error: "Ошибка валидации данных",
+        details: error.errors.map((err) => err.message),
+      });
     }
-    console.error("Ошибка создания:", error);
+
     res.status(500).json({ error: "Ошибка при создании счета" });
   }
 });
@@ -180,41 +190,6 @@ app.delete("/api/invoices/:id", async (req, res) => {
     res.json({ message: "Счет удален" });
   } catch (error) {
     res.status(500).json({ error: "Ошибка при удалении счета" });
-  }
-});
-
-// POST - Создать тестовые данные
-app.post("/api/invoices/test-data", async (req, res) => {
-  try {
-    const testInvoices = [
-      {
-        invoiceDate: new Date("2024-01-15"),
-        organization: 'ООО "Ромашка"',
-        invoiceNumber: "INV-001",
-        amount: "15 000 ₽",
-        paymentDate: new Date("2024-01-20"),
-        responsible: "Иванов И.И.",
-        note: "Оплата за услуги",
-      },
-      {
-        invoiceDate: new Date("2024-01-18"),
-        organization: 'АО "Луч"',
-        invoiceNumber: "INV-002",
-        amount: "25 500 ₽",
-        paymentDate: new Date("2024-01-25"),
-        responsible: "Петров П.П.",
-        note: "За поставку оборудования",
-      },
-    ];
-
-    const createdInvoices = await Invoice.bulkCreate(testInvoices);
-    res.json({
-      message: "Тестовые данные созданы",
-      count: createdInvoices.length,
-    });
-  } catch (error) {
-    console.error("Ошибка создания тестовых данных:", error);
-    res.status(500).json({ error: "Ошибка при создании тестовых данных" });
   }
 });
 
