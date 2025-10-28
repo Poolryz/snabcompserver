@@ -12,7 +12,7 @@ const Invoice = sequelize.define(
     invoiceDate: {
       type: DataTypes.DATE,
       allowNull: false,
-      field: "invoice_date", // В БД будет invoice_date, в коде - invoiceDate
+      field: "invoice_date",
     },
     organization: {
       type: DataTypes.STRING(255),
@@ -24,7 +24,7 @@ const Invoice = sequelize.define(
       field: "invoice_number",
     },
     amount: {
-      type: DataTypes.STRING(50), // Храним как строку "15 000 ₽"
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     paymentDate: {
@@ -39,6 +39,16 @@ const Invoice = sequelize.define(
     note: {
       type: DataTypes.TEXT,
       allowNull: true,
+    },
+    invoicePdfPath: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: "invoice_pdf_path",
+    },
+    paymentPdfPath: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: "payment_pdf_path",
     },
   },
   {
